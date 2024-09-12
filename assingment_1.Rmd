@@ -3,13 +3,23 @@ library(tidyverse)
 library(sf)
 
 df <- read_csv("toiletmapexport_240901_074429.csv")
-au <- st_read("AUS_STATES_2010.shp", quiet = TRUE)
+au <- st_read("AU_states.shp", quiet = TRUE)
 
-ggplot(data = au) +
-  geom_sf(size = 0.3, 
-          fill = "white") +
+df_sf <- df %>%
+  filter(!is.na(Latitude) & !is.na(Longitude)) %>%
+  st_as_sf(coords = c("Longitude", "Latitude"), crs = 4326)
+
+ggplot() +
+  geom_sf(data = au, fill = "lightgrey", color = "black") +
+  geom_point(
+    data = df_sf, aes(
+      x = st_coordinates(df_sf)[, 1],
+      y = st_coordinates(df_sf)[, 2]
+    ),
+    color = "red", size = 0.5, alpha = 0.2
+  ) +
+  scale_fill_viridis_c(option = "A") +
+  coord_sf() +
   theme_minimal() +
-  coord_sf(crs = 3112) + 
-  theme(panel.background = element_rect(fill = "steelblue2"))
+  labs(title = "Public toilet locations in Australia", x = "Longitude", y = "Latitude")
 ```
-
