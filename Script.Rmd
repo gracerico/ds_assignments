@@ -1,0 +1,39 @@
+```{r}
+library(ggplot2)
+library(tidyverse)
+library(dplyr)
+library(sf)
+library(raster)
+library(viridis) # for colour scheme
+
+# read in the file for the toilet map
+toiletmap <- read.csv("toiletmapexport_240901_074429.csv", 
+           stringsAsFactors=TRUE)
+
+# pivot the values to get the t/f for each gender to count later
+toiletmappivoted <- toiletmap |>
+  pivot_longer(
+    cols = c("Male", "Female", "Unisex", "AllGender"),
+    names_to = "Gendered",
+    values_to = "value"
+  )
+
+# plot the wrapped df on Gender and State
+toiletmappivoted |>
+  filter(State != "", value == "True") |> 
+  group_by(State)|>
+  summarize(Gendered, n = n()) |> 
+  ggplot(
+    aes(x = reorder(State,-n),
+        y = n,
+        fill = State
+        )
+    )+
+  geom_col() +
+  facet_wrap(~Gendered) + 
+  labs(x = "States", y = "Number of Toilets (log 10 n)", title = "Toilets per State by Gender in Australia")
+
+
+
+```
+
