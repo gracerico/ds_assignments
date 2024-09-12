@@ -1,0 +1,15 @@
+```{r}
+library(tidyverse)
+library(sf)
+
+df <- read_csv("toiletmapexport_240901_074429.csv")
+au <- st_read("AUS_STATES_2010.shp", quiet = TRUE)
+
+ggplot(data = au) +
+  geom_sf(size = 0.3, 
+          fill = "white") +
+  theme_minimal() +
+  coord_sf(crs = 3112) + 
+  theme(panel.background = element_rect(fill = "steelblue2"))
+```
+
