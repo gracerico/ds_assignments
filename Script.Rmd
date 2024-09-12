@@ -25,12 +25,13 @@ toiletmappivoted |>
   summarize(Gendered, n = n()) |> 
   ggplot(
     aes(x = reorder(State,-n),
-        y = n,
+        y = log10(n),
         fill = State
         )
     )+
   geom_col() +
   facet_wrap(~Gendered) + 
+  theme_minimal() + 
   labs(x = "States", y = "Number of Toilets (log 10 n)", title = "Toilets per State by Gender in Australia")
 
 
