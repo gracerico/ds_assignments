@@ -2,10 +2,13 @@
 library(tidyverse)
 library(sf)
 
-df <- read_csv("toiletmapexport_240901_074429.csv")
+toiletmapexport_240901_074429 <-
+  read.csv("toiletmapexport_240901_074429.csv",
+    stringsAsFactors = TRUE
+  )
 au <- st_read("AU_states.shp", quiet = TRUE)
 
-df_sf <- df %>%
+df_sf <- toiletmapexport_240901_074429 %>%
   filter(!is.na(Latitude) & !is.na(Longitude)) %>%
   st_as_sf(coords = c("Longitude", "Latitude"), crs = 4326)
 
@@ -22,4 +25,36 @@ ggplot() +
   coord_sf() +
   theme_minimal() +
   labs(title = "Public toilet locations in Australia", x = "Longitude", y = "Latitude")
+
+toiletmap <- toiletmapexport_240901_074429
+toiletmap1 <- toiletmapexport_240901_074429
+
+toiletmappivoted <- toiletmap |>
+  pivot_longer(
+    cols = c("Male", "Female", "Unisex"),
+    names_to = "Gendered",
+    values_to = "value"
+  )
+
+toiletmapsummarized <- toiletmappivoted |>
+  filter(State != "") |>
+  group_by(State) |>
+  summarise(n = n()) |>
+  arrange(desc(n))
+
+
+toiletmappivoted |>
+  filter(State != "", value == "True") |>
+  group_by(State) |>
+  summarize(Gendered, n = n()) |>
+  ggplot(
+    aes(
+      x = reorder(State, -n),
+      y = n,
+      fill = State
+    )
+  ) +
+  geom_col() +
+  facet_wrap(~Gendered) +
+  labs(title = "Different types of public toilet locations in Australia's states", x = "States", y = "Count")
 ```
