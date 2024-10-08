@@ -1,0 +1,60 @@
+---
+title: "assignment_2"
+author: "G Rico"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+# set up
+library(tidyverse)
+library(readxl)     
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+
+```{r}
+
+data <- read_excel('4.2_People_who_inject_drugs_and_prevalence_of_diseases_by_gender.xlsx', skip = 1)
+
+colnames(data) <- c("Region", "Subregion", "Country", "Year of estimate", "Male", "Female", "Source", "Notes")
+
+data <- data %>%
+  mutate(across(c(Male, Female), as.numeric))
+data <- data %>% select(-c(Source, Notes)) %>% drop_na()
+
+data_long <- data %>%
+  pivot_longer(cols = c(Male, Female), names_to = "Gender", values_to = "Value")
+
+contingency_table <- data_long %>%
+  group_by(Subregion, Gender) %>%
+  summarise(Total = sum(Value, na.rm = TRUE), .groups = 'drop')
+
+contingency_table <- contingency_table %>%
+  pivot_wider(names_from = Gender, values_from = Total) %>%
+  select(Subregion, Male, Female)
+
+
+```
+
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
