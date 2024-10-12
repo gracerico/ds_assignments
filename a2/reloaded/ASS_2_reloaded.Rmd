@@ -98,9 +98,12 @@ ggplot(filtered_data, aes(x = DEPARTAMENTO, y = n, fill = SEXO)) +
   labs(title = "Proportion of Male and Female COVID Deaths by State",
        x = "State", y = "Proportion", fill = "Sex") +
   geom_hline(yintercept = 0.5,
-             linetype = "dashed",
+             linetype = "dashed", # Add line for better 
              color = "red",
              size = 1.5) +
+  labs(title = "Proportions of Male and Female COVID deaths by Peruvian State (South America)",
+       x = "Peruvian State") +
+  scale_fill_discrete(labels = c("FEMENINO" = "Female", "MASCULINO" = "Male")) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) #Makes x-axis labs readable
 
 ```
