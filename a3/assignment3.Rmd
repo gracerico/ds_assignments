@@ -63,3 +63,16 @@ sales %>% ggplot(mapping = aes(x = Temperature, y = Ice.Cream.Profits)) +
 cor_test <- cor.test(sales$Temperature, sales$Ice.Cream.Profits)
 cor_test$conf.int
 ```
+
+# - Regression
+
+```{r}
+fit <- lm(sales$Ice.Cream.Profits ~ sales$Temperature)
+fit
+
+sales %>%
+  ggplot(mapping = aes(x = Temperature, y = Ice.Cream.Profits)) +
+  geom_point() +
+  geom_smooth(method = "lm")
+```
+Intercept = -33.698 and slope = 1.192
