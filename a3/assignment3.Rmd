@@ -1,0 +1,126 @@
+---
+title: "Death by state in Peru"
+author: "Emilio Sopprani, Grace Rico, Gonzalo Quintanilla, Mark Hegedus"
+date: "2024-10-09"
+output:
+  html_document:
+    code_folding: show
+    toc: true
+    toc_depth: 2
+    toc_float: true
+    number_sections: true
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(kableExtra)
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# - Helper functions
+```{r}
+show_head <- function(df) {
+  head(df) %>% # passing down only few lines from the df
+    knitr::kable(format = "html") %>% # showing the lines in html format
+    kable_styling(bootstrap_options = "striped", full_width = FALSE) %>% # little bit of style to avoid columns to be crowded
+    kableExtra::scroll_box(width = "100%") # make it scrollable so the columns don't overflow the page
+}
+
+are_assumptions_met <- function(expected_values) {
+  under_freq_of_5 <- 0 # init a counter variable, which counts those frequencies that are lower than 5
+  for (i in expected_values) { # loop through all the expected values (frequencies)
+    if (i < 1) { # if at least one frequency is lower than 1 we just return False
+      return(F)
+    } else if (i < 5) { # count frequencies that are less than 5
+      under_freq_of_5 <- 1 + under_freq_of_5 # increase counter variable
+    }
+  }
+  return(ifelse(under_freq_of_5 / length(expected_values) > 0.2, F, T)) # if frequencies of less than 5 have a higher proportion than 20% we return False, otherwise True
+}
+```
+
+
+# - Import dataset
+```{r}
+fallecidos_covid <- read.csv("./fallecidos_covid.csv", sep = ";")
+
+show_head(fallecidos_covid)
+```
+
+# - Wrangling dataset
+```{r}
+# Filtering our data to get rid of all the rubbish
+filtered_data <- fallecidos_covid |> select(DEPARTAMENTO, SEXO) |> # Select only the variables we are going to use
+  filter(DEPARTAMENTO != "MASCULINO") |> # There is a mislabeled state as "Masculino" So we are choosing all the entries but that one.
+  drop_na() |> # Just in Case
+  summarize(.by = c(DEPARTAMENTO, SEXO), n = n()) # we collapse all the Masculine and Femenine counts by departamento and include the number "n" of observations
+
+# We are creating our contingency table
+cont_table <- filtered_data |>
+  pivot_wider(names_from = SEXO, values_from = n) |> # The sex needs to be separated into columns so it is pivoted wider.
+  as.data.frame() # turned as a df
+
+# Change the row names to each DEPARTAMENTO to get a nice Contingecy table
+
+rownames(cont_table) <- cont_table$DEPARTAMENTO # Change the row names to the state instead of having a column with it
+
+# change the names so all the non-spanish speaking peeps can understand
+cont_table <- cont_table |>
+  mutate(
+    "male" = MASCULINO,
+    "female" = FEMENINO
+  )
+
+# selecting the useful columns and transforming it as a matrix to put in chisq.test()
+
+cont_table_matrix <- cont_table |>
+  select(c(male, female)) |>
+  as.matrix()
+
+show_head(cont_table_matrix)
+```
+
+# - Hypotheses
+- H~0~ = There is no difference in deaths by sex amongst each Peruvian state.
+- H~a~ = There is a difference in deaths by sex amongst each Peruvian state.
+
+Our chosen significance level is 𝛂 = 0.05.
+
+# - Visualization
+```{r}
+
+#Proportional stacked bar plot - Does not show counts (hides data) but "cleaner" version of the mosaic plot
+ggplot(filtered_data, aes(x = DEPARTAMENTO, y = n, fill = SEXO)) +
+  geom_bar(stat = "identity", position = "fill") + #Scales height of bars so that they are proportions
+  scale_y_continuous(labels = scales::percent) + #Converts numeric variables into percents
+  labs(title = "Proportion of Male and Female COVID Deaths by State",
+       x = "State", y = "Proportion", fill = "Sex") +
+  geom_hline(yintercept = 0.5,
+             linetype = "dashed", # Add line for better 
+             color = "red",
+             size = 1.5) +
+  labs(title = "Proportions of Male and Female COVID deaths by Peruvian State (South America)",
+       x = "Peruvian State") +
+  scale_fill_discrete(labels = c("FEMENINO" = "Female", "MASCULINO" = "Male")) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) #Makes x-axis labs readable
+
+```
+
+
+# - Test statistics and degree of freedom
+```{r}
+x2 <- chisq.test(cont_table_matrix)
+x2
+
+# There is one group "LIMA METROPOLITANA" that has only 8 observations (4 male/4 female) but its fine bc we have 52 entries so no assumptions are violated :)
+sprintf("Are assumptions met? %s", are_assumptions_met(x2$expected)) # using helper function to check whether the assumptions are met
+```
+
+
+# - P-value and conclusion
+```{r}
+sprintf("P-value: %s", x2$p.value)
+```
+- We conclude that there is a difference in deaths by sex amongst each Peruvian state, since our p-value is less than our significance level, which is 0.05.
