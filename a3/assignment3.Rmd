@@ -36,19 +36,30 @@ show_head <- function(df) {
 
 ```{r}
 sales <- read.csv("./ice_cream_sales_temperatures.csv")
-show_head(sales)
+show_head(sales)  # show head of the sales dataset
 ```
 
 # - Visualize data
 
 ```{r}
+# plot our dataset to get an intuition of what it looks like
 sales %>%
   ggplot(mapping = aes(x = Temperature, y = Ice.Cream.Profits)) +
   geom_point()
 ```
 
-# - Visualization
+# - Correlation
 
 ```{r}
+r_squared <- cor(sales$Temperature, sales$Ice.Cream.Profits)  # calculate correlation coefficient
 
+# plot dataset with correlation coefficient
+sales %>% ggplot(mapping = aes(x = Temperature, y = Ice.Cream.Profits)) +
+  geom_point() +
+  annotate("text", x = Inf, y = Inf, label = paste0("R²: ", round(r_squared, 2)), hjust = 1.1, vjust = 1.1) +
+  theme(legend.position = "none")
+
+# calculate confidence interval of the correlation
+cor_test <- cor.test(sales$Temperature, sales$Ice.Cream.Profits)
+cor_test$conf.int
 ```
