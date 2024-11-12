@@ -1,5 +1,5 @@
 ---
-title: "Is there a super strong correlation between temperature and ice cream?"
+title: "Is there a super strong correlation between temperature and ice cream sales?"
 author: "Emilio Sopprani, Grace 3Rico, Gonzalo Quintanilla, Mark Hegedus"
 date: "2024-11-13"
 output:
