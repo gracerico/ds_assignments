@@ -16,6 +16,7 @@ editor_options:
 ```{r setup, include=FALSE}
 library(tidyverse)
 library(kableExtra)
+library(stringi)
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
@@ -35,8 +36,16 @@ show_head <- function(df) {
 
 ```{r}
 movies <- read.csv("./movies_data.csv")
+movies[] <- lapply(movies, function(x) iconv(x, "latin1", "UTF-8", sub = ""))
+movies[] <- lapply(movies, function(x) {
+  if (is.character(x)) {
+    stri_encode(x, "", "UTF-8")
+  } else {
+    x
+  }
+})
 
-knitr::kable(movies)
+show_head(movies)
 ```
 
 # - Wrangling dataset
